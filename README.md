@@ -1,4 +1,4 @@
-# Type Generator
+# Laravel Types
 
 Composer package to generate TypeScript interfaces from laravel migrations and form requets 
 
@@ -7,7 +7,7 @@ Composer package to generate TypeScript interfaces from laravel migrations and f
 1. Install package - using composer
 
 ```
-composer require matemat/type-generator
+composer require matemat/laravel-types
 ```
 2. Publish the package's configuration file using the following command:
 
