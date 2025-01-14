@@ -1,7 +1,7 @@
 {
-    "name": "matemat/type-generator",
+    "name": "matemat/laravel-types",
     "description": "Generates TypeScript interfaces from laravel migrations and form requests",
-    "homepage": "https://github.com/RobertPapyan/type-generator",
+    "homepage": "https://github.com/matematio/laravel-types",
     "license": "MIT",
     "authors": [
         {
