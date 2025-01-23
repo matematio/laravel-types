@@ -3,6 +3,7 @@
 namespace Matemat\TypeGenerator\Services;
 
 use Matemat\TypeGenerator\Models\MigrationModel;
+use Illuminate\Support\Str;
 
 class InterfaceMaker
 {
@@ -17,7 +18,7 @@ class InterfaceMaker
     {
         $interfaces = [];
         foreach ($models as $model) {
-            $interface_name = ucfirst($this->underscoreToCamelCase($model->name));
+            $interface_name = ucfirst(Str::camel($model->name));
 
             $interface = 'export interface '.$interface_name." { \n";
             foreach ($model->fields as $field) {
@@ -47,7 +48,7 @@ class InterfaceMaker
     {
         $result = ' '.$field['field_name'].': ';
         if ($field['field_type'] == 'enum') {
-            $enumName = ucfirst($this->underscoreToCamelCase($field['field_name']));
+            $enumName = ucfirst(Str::camel($field['field_name']));
             $result = $result.$enumName;
             $interface = $this->generateEnum($enumName, $field['enum_values']).$interface;
         } elseif ($field['field_type'] == 'concrete') {
@@ -119,22 +120,13 @@ class InterfaceMaker
 
     private function generateEnum($name, $values)
     {
-        $result = "enum $name { \n";
+        $result = "declare enum $name { \n";
         foreach ($values as $value) {
             $result = $result.' '.$value.' = '."'$value'".",\n";
         }
-        $result = $result."}\n";
+        $result = $result."}\n\n";
 
         return $result;
     }
 
-    private function underscoreToCamelCase($string)
-    {
-        $result = str_replace('_', ' ', $string); // Replace underscores with spaces
-        $result = ucwords($result); // Capitalize each word
-        $result = str_replace(' ', '', $result); // Remove the spaces
-        $result = lcfirst($result); // Make the first character lowercase for camelCase
-
-        return $result;
-    }
 }

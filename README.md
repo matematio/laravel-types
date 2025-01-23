@@ -24,5 +24,5 @@ your_project/config/type-generator.php
 4. Run the Artisan console command to generate TypeScript interfaces:
 
 ```
-php artisan app:generate-types 
+php artisan matemat:generate-types 
 ```

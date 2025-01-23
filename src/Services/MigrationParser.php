@@ -13,12 +13,17 @@ use Matemat\TypeGenerator\MigrationFieldHandlers\TimestampHandler;
 use Matemat\TypeGenerator\Models\MigrationModel;
 use Matemat\TypeGenerator\Traits\CommentRemover;
 use Symfony\Component\Finder\SplFileInfo;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class MigrationParser implements FileParser
 {
     use CommentRemover;
 
     private array $handlers = [];
+    private string $modelpath;
+    private array   $modelFiles;
+    private array $namingMap;
 
     public function __construct()
     {
@@ -31,6 +36,9 @@ class MigrationParser implements FileParser
             new MorphHandler,
             new TimestampHandler,
         ];
+        $this->modelpath = base_path(config('type-generator.models_path'));
+        $this->modelFiles = File::allFiles($this->modelpath);
+        $this->createNamingMap();
     }
 
     public function parse(SplFileInfo $file): array
@@ -71,8 +79,14 @@ class MigrationParser implements FileParser
     private function convertToModel($builder): MigrationModel
     {
         $builder['type'] = $builder['type'] == 'table' ? 'update' : $builder['type'];
+        $tableName = $builder['table'];
+        if(isset($this->namingMap[$tableName])){
+            $tableName = $this->namingMap[$tableName];
+        }else{
+           $tableName = Str::singular($tableName);
+        }
 
-        $model = new MigrationModel($builder['table'], $builder['type']);
+        $model = new MigrationModel($tableName, $builder['type']);
         preg_match_all('/\$table->[^;]+;/', $builder['content'], $matches);
         foreach ($matches[0] as $match) {
             $this->handleField($match, $model);
@@ -102,5 +116,19 @@ class MigrationParser implements FileParser
         $indexes = ['primary', 'unique', 'index', 'fullText', 'spatialIndex'];
 
         return in_array($fieldType, $indexes);
+    }
+
+    private function createNamingMap(){
+        foreach($this->modelFiles as $model){
+            $modelname = strtolower(explode('.',$model->getFilename())[0]);
+            $content = $model->getContents();
+            $content = $this->removeComment($content);
+            
+            preg_match('/protected\s*\$table\s*=\s*[\'"]([^\'"]+)[\'"]\s*;/', $content, $matches);
+            $tableName = $matches[1] ?? null; //
+            if($tableName){
+                $this->namingMap[trim($tableName)] = $modelname;
+            }
+        }
     }
 }
